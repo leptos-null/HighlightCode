@@ -1,0 +1,73 @@
+.hljs-code,
+.hljs-formula {
+    color: #000000b2;
+}
+.hljs-link {
+    color: #0e0eff;
+}
+.hljs-emphasis {
+    color: #000000;
+}
+.hljs-strong {
+    color: #000000;
+}
+.hljs-attr,
+.hljs-tag {
+    color: #805e03;
+}
+.hljs-doctag {
+    color: #495460;
+}
+.hljs-built_in {
+    color: #3900a0;
+}
+.hljs-regexp,
+.hljs-string,
+.hljs-meta-string {
+    color: #c41a15;
+}
+.hljs-class {
+    color: #3900a0;
+}
+.hljs-symbol,
+.hljs-name,
+.hljs-attribute {
+    color: #316d73;
+}
+.hljs-function {
+    color: #316d73;
+}
+.hljs-type {
+    color: #0b4f79;
+}
+.hljs-keyword,
+.hljs-literal {
+    color: #9a2392;
+}
+.hljs-title,
+.hljs-selector-class {
+    color: #1c4549;
+}
+.hljs-comment {
+    color: #5d6b79;
+}
+.hljs-meta-keyword {
+    color: #63381f;
+}
+.hljs-subst,
+.hljs-params {
+    color: #000000d8;
+}
+.hljs-number {
+    color: #1c00ce;
+}
+.hljs-meta {
+    color: #63381f;
+}
+.hljs-section {
+    color: #a90d91;
+}
+.hljs-variable {
+    color: #316d73;
+}
+
