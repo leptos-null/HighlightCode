@@ -1,6 +1,6 @@
 //
 //  main.m
-//  highlightColor
+//  HighlightCode
 //
 //  Created by Leptos on 10/25/19.
 //  Copyright 2019 Leptos. All rights reserved.
