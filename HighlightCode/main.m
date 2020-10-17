@@ -8,29 +8,36 @@
 
 #import <Foundation/Foundation.h>
 
-/// @param names https://highlightjs.readthedocs.io/en/latest/css-classes-reference.html
-/// @param colorDsc A space-delimited @c [0, @c 1] representation of the rgb channels, and optionally the alpha channel
-static NSString *cssForHighlighNamesColorDesc(NSArray<NSString *> *names, NSString *colorDsc) {
+/// @param names Each name must be one of https://highlightjs.readthedocs.io/en/latest/css-classes-reference.html
+/// @param colorDsc A space-delimited @c [0,1] representation of the rgb channels, and optionally the alpha channel
+static NSString *HCStyleForHighlightNamesDesc(NSArray<NSString *> *names, NSString *colorDsc) {
     typedef enum : NSUInteger {
-        colorChannelRed,
-        colorChannelGreen,
-        colorChannelBlue,
-        colorChannelAlpha,
-    } colorChannel;
+        HCColorChannelRed,
+        HCColorChannelGreen,
+        HCColorChannelBlue,
+        HCColorChannelAlpha,
+    } HCColorChannel;
     
     uint8_t const channelMax = 0xff;
     NSArray<NSString *> *decimalChannels = [colorDsc componentsSeparatedByString:@" "];
     NSCAssert(decimalChannels.count >= 3, @"colorDsc must contain the rgb channels");
     
-    NSMutableString *colorHex = [NSMutableString stringWithCapacity:decimalChannels.count * 2];
-    [decimalChannels enumerateObjectsUsingBlock:^(NSString *value, colorChannel channel, BOOL *stop) {
-        if (channel <= colorChannelAlpha) {
-            uint8_t channelHex = value.doubleValue * channelMax;
-            if (channel == colorChannelAlpha && channelHex == channelMax) {
-                /* skip alpha channel if it's full */
-                return;
-            }
-            [colorHex insertString:[NSString stringWithFormat:@"%02x", channelHex] atIndex:channel * 2];
+    NSMutableArray<NSString *> *colorHex = [NSMutableArray arrayWithCapacity:decimalChannels.count];
+    [decimalChannels enumerateObjectsUsingBlock:^(NSString *value, HCColorChannel channel, BOOL *stop) {
+        uint8_t channelHex = value.doubleValue * channelMax;
+        
+        switch (channel) {
+            case HCColorChannelAlpha:
+                if (channelHex == channelMax) {
+                    break;
+                }
+            case HCColorChannelRed:
+            case HCColorChannelGreen:
+            case HCColorChannelBlue:
+                colorHex[channel] = [NSString stringWithFormat:@"%02x", channelHex];
+                break;
+            default:
+                break;
         }
     }];
     
@@ -42,11 +49,12 @@ static NSString *cssForHighlighNamesColorDesc(NSArray<NSString *> *names, NSStri
     return [NSString stringWithFormat:@""
             "%@ {\n"
             "    color: #%@;\n"
-            "}\n", [fullNames componentsJoinedByString:@",\n"], colorHex];
+            "}\n", [fullNames componentsJoinedByString:@",\n"], [colorHex componentsJoinedByString:@""]];
 }
 
-static NSString *cssForXcColorTheme(NSDictionary *coreDict) {
-    switch ([coreDict[@"DVTFontAndColorVersion"] intValue]) {
+static NSString *HCCSSForXCColorTheme(NSDictionary *coreDict) {
+    NSInteger const version = [coreDict[@"DVTFontAndColorVersion"] integerValue];
+    switch (version) {
         case 1: {
             NSDictionary<NSString *, NSArray<NSString *> *> *const xcodeCoreHighlightMap = @{
                 @"DVTMarkupTextInlineCodeColor" : @[ @"code", @"formula" ],
@@ -77,11 +85,11 @@ static NSString *cssForXcColorTheme(NSDictionary *coreDict) {
             
             NSMutableString *ret = [NSMutableString string];
             [xcodeCoreHighlightMap enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSArray<NSString *> *names, BOOL *stop) {
-                [ret appendString:cssForHighlighNamesColorDesc(names, coreDict[key])];
+                [ret appendString:HCStyleForHighlightNamesDesc(names, coreDict[key])];
             }];
             NSDictionary<NSString *, NSString *> *syntaxColors = coreDict[@"DVTSourceTextSyntaxColors"];
             [xcodeSyntaxHighlightMap enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSArray<NSString *> *names, BOOL *stop) {
-                [ret appendString:cssForHighlighNamesColorDesc(names, syntaxColors[key])];
+                [ret appendString:HCStyleForHighlightNamesDesc(names, syntaxColors[key])];
             }];
             return ret;
         } break;
@@ -93,13 +101,13 @@ static NSString *cssForXcColorTheme(NSDictionary *coreDict) {
 
 int main(int argc, const char *argv[]) {
     const char *path = argv[1];
-    if (!path) {
+    if (path == NULL || strcmp(path, "--help") == 0) {
         /* `find $(xcode-select -p)/.. ~/Library/Developer/Xcode/UserData -name "*.xccolortheme" -type f` */
-        fprintf(stderr, "Path to xccolortheme required\n");
+        printf("Usage: %s <xccolortheme>\n", argv[0]);
         return 1;
     }
     
-    NSString *css = cssForXcColorTheme([NSDictionary dictionaryWithContentsOfFile:@(path)]);
+    NSString *css = HCCSSForXCColorTheme([NSDictionary dictionaryWithContentsOfFile:@(path)]);
     puts(css.UTF8String);
     
     return 0;
